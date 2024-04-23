@@ -5,6 +5,7 @@ import (
     "reflect"
     "sort"
     "strings"
+    "net/url"
 )
 
 func HttpBuildQuery(data map[string]interface{}, prefix string) string {
@@ -52,7 +53,7 @@ func HttpBuildQuery(data map[string]interface{}, prefix string) string {
             if val, ok := m[string(c)]; ok {
                 result += val
             } else {
-                result += string(c)
+                result += url.QueryEscape(string(c))
             }
         }
         return result
