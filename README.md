@@ -33,33 +33,35 @@ go install https://github.com/anquanssl/golang-sdk
 package main
 
 import (
-	"fmt"
-	"math/rand"
-	"time"
+    "fmt"
+    "math/rand"
+    "time"
 
-	anquanssl "github.com/anquanssl/golang-sdk"
-	request "github.com/anquanssl/golang-sdk/request"
-	resource "github.com/anquanssl/golang-sdk/resource"
+    anquanssl "github.com/anquanssl/golang-sdk"
+    request "github.com/anquanssl/golang-sdk/request"
+    resource "github.com/anquanssl/golang-sdk/resource"
 )
 
 func main() {
-	accessKeyID := ""
-	accessKeySecrte := ""
+    var resp map[string]interface{}
+    fmt.Println("=======")
 
-	client := anquanssl.NewClient(accessKeyID, accessKeySecrte, "")
-	// product := resource.NewProduct(client)
-	order := resource.NewOrder(client)
-	var resp map[string]interface{}
+    accessKeyID := ""
+    accessKeySecrte := ""
 
-	// resp, _ = product.ProductList()
-	// fmt.Println("product list:", resp)
+    client := anquanssl.NewClient(accessKeyID, accessKeySecrte, "")
 
-	fmt.Println("=======")
+    product := resource.NewProduct(client)
+    resp, _ = product.ProductList()
+    fmt.Println("productList:", resp)
+    fmt.Printf("\n")
 
-	certificateCreateRequest := request.CertificateCreateRequest{}
-	certificateCreateRequest.ProductID = "sslcom_dv_flex"
-	certificateCreateRequest.Period = "annually"
-	certificateCreateRequest.CSR = `-----BEGIN CERTIFICATE REQUEST-----
+    order := resource.NewOrder(client)
+
+    certificateCreateRequest := request.CertificateCreateRequest{}
+    certificateCreateRequest.ProductID = "sslcom_dv_flex"
+    certificateCreateRequest.Period = "annually"
+    certificateCreateRequest.CSR = `-----BEGIN CERTIFICATE REQUEST-----
 MIICsTCCAZkCAQAwQjELMAkGA1UEBhMCQ04xDTALBgNVBAgTBHRlc3QxDTALBgNV
 BAcTBHRlc3QxFTATBgNVBAMMDCouZG9tYWluLmNvbTCCASIwDQYJKoZIhvcNAQEB
 BQADggEPADCCAQoCggEBAKvgoSs6HahR2RACS2j+hjMtcCUKMWW0kpB96JM3ITEp
@@ -77,49 +79,49 @@ d+ZnVcZEq5UjeEgUG9P0WguwvwZe0szM8ae+cMxJ/mDcrt/g7ammTD80XfQImYij
 aKJmfyDcygIdCZ6uk87LmN0UF4rd
 -----END CERTIFICATE REQUEST-----`
 
-	// generate random
-	rand.Seed(time.Now().UnixNano())
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, 10)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
+    // generate random
+    rand.Seed(time.Now().UnixNano())
+    var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    b := make([]rune, 10)
+    for i := range b {
+        b[i] = letters[rand.Intn(len(letters))]
+    }
     UniqueID := string(b)
 
-	certificateCreateRequest.UniqueID = UniqueID
-	certificateCreateRequest.ContactEmail = "email@example.org"
-	certificateCreateRequest.ContactName = "~"
-	certificateCreateRequest.DomainDCV = make(map[string]string)
-	certificateCreateRequest.DomainDCV["*.domain.com"] = "dns"
-	certificateCreateRequest.DomainDCV["domain.com"] = "dns"
-	certificateCreateRequest.DomainDCV["*.domain2.com"] = "dns"
-	certificateCreateRequest.DomainDCV["domain2.com"] = "dns"
-	certificateCreateRequest.NotifyURL = "https://my-callback.app/notify-url"
+    certificateCreateRequest.UniqueID = UniqueID
+    certificateCreateRequest.ContactEmail = "email@example.org"
+    certificateCreateRequest.ContactName = "~"
+    certificateCreateRequest.DomainDCV = make(map[string]string)
+    certificateCreateRequest.DomainDCV["*.domain.com"] = "dns"
+    certificateCreateRequest.DomainDCV["domain.com"] = "dns"
+    certificateCreateRequest.DomainDCV["*.domain2.com"] = "dns"
+    certificateCreateRequest.DomainDCV["domain2.com"] = "dns"
+    certificateCreateRequest.NotifyURL = "https://my-callback.app/notify-url"
 
-	resp, _ = order.CertificateCreate(certificateCreateRequest)
+    resp, _ = order.CertificateCreate(certificateCreateRequest)
 
-	// get `service_id` from map `resp`
-	serviceID := resp["data"].(map[string]interface{})["service_id"].(string)
-	fmt.Printf("certificateCreate serviceID := ", serviceID)
-	fmt.Printf("\n")
+    // get `service_id` from map `resp`
+    serviceID := resp["data"].(map[string]interface{})["service_id"].(string)
+    fmt.Printf("certificateCreate serviceID := ", serviceID)
+    fmt.Printf("\n")
 
-	certificateDetailRequest := request.CertificateDetailRequest{}
-	certificateDetailRequest.ServiceID = serviceID
-	resp, _ = order.CertificateDetail(certificateDetailRequest)
-	fmt.Println("certificateDetailRequest:", resp)
-	fmt.Printf("\n")
+    certificateDetailRequest := request.CertificateDetailRequest{}
+    certificateDetailRequest.ServiceID = serviceID
+    resp, _ = order.CertificateDetail(certificateDetailRequest)
+    fmt.Println("certificateDetailRequest:", resp)
+    fmt.Printf("\n")
 
-	certificateValidateDCVRequest := request.CertificateValidateDCVRequest{}
-	certificateValidateDCVRequest.ServiceID = serviceID
-	resp, _ = order.CertificateValidateDCV(certificateValidateDCVRequest)
-	fmt.Println("certificateValidDCV:", resp)
-	fmt.Printf("\n")
+    certificateValidateDCVRequest := request.CertificateValidateDCVRequest{}
+    certificateValidateDCVRequest.ServiceID = serviceID
+    resp, _ = order.CertificateValidateDCV(certificateValidateDCVRequest)
+    fmt.Println("certificateValidDCV:", resp)
+    fmt.Printf("\n")
 
-	certificateRefundRequest := request.CertificateRefundRequest{}
-	certificateRefundRequest.ServiceID = serviceID
-	resp, _ = order.CertificateRefund(certificateRefundRequest)
-	fmt.Println("certificateRefund:", resp)
-	fmt.Printf("\n")
+    certificateRefundRequest := request.CertificateRefundRequest{}
+    certificateRefundRequest.ServiceID = serviceID
+    resp, _ = order.CertificateRefund(certificateRefundRequest)
+    fmt.Println("certificateRefund:", resp)
+    fmt.Printf("\n")
 }
 ```
 
